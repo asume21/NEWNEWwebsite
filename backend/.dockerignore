@@ -1,0 +1,7 @@
+# Only include backend files needed for build
+*
+!local_gpt4all_backend.py
+!requirements.txt
+!Dockerfile.backend
+!.env.example
+!README_LOCAL_AI.md
