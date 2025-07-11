@@ -9,8 +9,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements.txt and backend files
-COPY requirements.txt ./
-COPY . ./
+COPY backend/requirements.txt ./
+COPY backend/ ./
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip \
