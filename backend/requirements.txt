@@ -1,0 +1,8 @@
+# Requirements for backend Flask/Grok/MusicGen API
+flask
+flask-cors
+requests
+torch
+audiocraft
+soundfile
+sounddevice
