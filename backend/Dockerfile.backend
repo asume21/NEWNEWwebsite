@@ -1,6 +1,6 @@
 # Use a slim Python image
 # syntax=docker/dockerfile:1.4
-FROM ghcr.io/asume21/codedswitch-backend-base:latest
+FROM docker.io/asume21/codedswitch-backend-base:latest
 
 WORKDIR /app
 
