@@ -8,13 +8,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements.txt and backend files
-COPY backend/requirements.txt ./
-COPY backend/ ./
+# Copy entire project to /app
+COPY . /app
 
 # Install Python dependencies
+# Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+    && pip install --no-cache-dir -r backend/requirements.txt
 
 # Expose the port
 ENV PORT=10000
