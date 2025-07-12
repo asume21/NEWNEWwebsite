@@ -1,13 +1,10 @@
 # Use a slim Python image
 # syntax=docker/dockerfile:1.4
-FROM python:3.11-slim
+FROM ghcr.io/asume21/codedswitch-backend-base:latest
 
 WORKDIR /app
 
-# Install system dependencies (if any)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+
 
 # Copy only backend code and requirements
 COPY backend/requirements.txt requirements.txt
