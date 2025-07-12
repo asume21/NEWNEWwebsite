@@ -305,6 +305,15 @@ function AppContent() {
 }
 
 function App() {
+  useEffect(() => {
+    import('./components/LyricLab');
+    import('./components/CodeTranslator');
+    import('./components/BeatStudio');
+    import('./components/MusicStudio');
+    import('./components/Assistant');
+    import('./components/VulnerabilityScanner');
+    import('./components/SpessaSynthEmbed');
+  }, []);
   return (
     <Router>
       <Suspense fallback={<div className="loading">Loading...</div>}>
