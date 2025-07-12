@@ -13,6 +13,11 @@ def index():
     """Health-check endpoint for root path."""
     return jsonify({"status": "ok", "message": "CodedSwitch backend is running"})
 
+@app.route('/api/health')
+def health():
+    """Health-check endpoint for API path."""
+    return jsonify({"status": "ok", "message": "API healthy"})
+
 @app.route('/api/user/subscription', methods=['GET', 'OPTIONS'])
 def get_subscription():
     """Stub endpoint so the frontend stops throwing 404/JSON errors.
