@@ -8,6 +8,8 @@ const ChatBot = () => {
     { sender: 'bot', text: 'Hi! I\'m your CodedSwitch assistant. How can I help?' }
   ])
   const messagesEndRef = useRef(null)
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const toggle = () => setOpen(!open)
 
@@ -19,19 +21,36 @@ const ChatBot = () => {
 
   useEffect(scrollToBottom, [messages])
 
-  const handleSend = () => {
-    if (!input.trim()) return
+  const handleSend = async () => {
+    if (!input.trim()) return;
 
-    const userMsg = { sender: 'user', text: input.trim() }
-    setMessages(prev => [...prev, userMsg])
-    setInput('')
+    const userMsg = { sender: 'user', text: input.trim() };
+    setMessages(prev => [...prev, userMsg]);
+    setInput('');
 
-    // Demo bot response
-    setTimeout(() => {
-      const botMsg = { sender: 'bot', text: generateDemoResponse(userMsg.text) }
-      setMessages(prev => [...prev, botMsg])
-    }, 800)
-  }
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(import.meta.env.VITE_AI_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: userMsg.text,
+          provider: import.meta.env.VITE_DEFAULT_AI_PROVIDER
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'AI request failed');
+      const botMsg = { sender: 'bot', text: data.response };
+      setMessages(prev => [...prev, botMsg]);
+    } catch (err) {
+      const botMsg = { sender: 'bot', text: `Error: ${err.message}` };
+      setMessages(prev => [...prev, botMsg]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {

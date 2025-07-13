@@ -3,9 +3,17 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
 from musicgen_backend import generate_instrumental
+import openai
+import anthropic
+import google.generativeai as genai
 
 app = Flask(__name__)
-CORS(app, origins=["https://www.codedswitch.com", "https://codedswitch-frontend.onrender.com"])
+CORS(app, origins=[
+    "https://www.codedswitch.com",
+    "https://codedswitch-frontend.onrender.com",
+    "http://localhost:5173",
+    "http://localhost:3000"
+])
 
 
 @app.route('/')
@@ -77,6 +85,82 @@ def ai_proxy():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+@app.route('/api/generate', methods=['POST'])
+def generate_proxy():
+    '''Dispatch to multiple AI providers based on 'provider' param.'''
+    data = request.json or {}
+    prompt = data.get('prompt')
+    max_tokens = data.get('max_tokens', 200)
+    provider = data.get('provider', os.environ.get('DEFAULT_AI_PROVIDER', 'gpt')).lower()
+    if not prompt:
+        return jsonify({'error': 'Missing prompt'}), 400
+
+    # OpenAI / GPT
+    if provider in ['gpt', 'openai']:
+        openai_api_key = os.environ.get('OPENAI_API_KEY')
+        if not openai_api_key:
+            return jsonify({'error': 'OPENAI_API_KEY environment variable not set'}), 500
+        try:
+            resp = openai.ChatCompletion.create(
+                model=data.get('model', 'gpt-3.5-turbo'),
+                messages=[{'role': 'user', 'content': prompt}],
+                max_tokens=max_tokens
+            )
+            content = resp.choices[0].message.content
+            return jsonify({'response': content})
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+    # Anthropic / Claude
+    elif provider in ['claude', 'anthropic']:
+        anthropic_api_key = os.environ.get('ANTHROPIC_API_KEY')
+        if not anthropic_api_key:
+            return jsonify({'error': 'ANTHROPIC_API_KEY environment variable not set'}), 500
+        try:
+            response = requests.post(
+                'https://api.anthropic.com/v1/chat/completions',
+                headers={
+                    'x-api-key': anthropic_api_key,
+                    'Content-Type': 'application/json'
+                },
+                json={
+                    'model': data.get('model', 'claude-2'),
+                    'messages': [{'role': 'user', 'content': prompt}],
+                    'max_tokens_to_sample': max_tokens
+                },
+                timeout=60
+            )
+            response.raise_for_status()
+            result = response.json()
+            content = result['choices'][0]['message']['content']
+            return jsonify({'response': content})
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+    # Grok
+    elif provider == 'grok':
+        return ai_proxy()
+
+    # Gemini
+    elif provider == 'gemini':
+        gemini_api_key = os.environ.get('GEMINI_API_KEY')
+        if not gemini_api_key:
+            return jsonify({'error': 'GEMINI_API_KEY environment variable not set'}), 500
+        try:
+            genai.configure(api_key=gemini_api_key)
+            response = genai.chat.post(
+                model=data.get('model', 'models/chat-bison-001'),
+                messages=[{'author': 'user', 'content': prompt}]
+            )
+            content = response.last.text
+            return jsonify({'response': content})
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+    else:
+        return jsonify({'error': f"Unknown provider '{provider}'"}), 400
+
 from flask import send_file
 
 @app.route('/api/generate-music', methods=['POST'])
@@ -107,6 +191,29 @@ def serve_music_file():
     if not os.path.exists(wav_path):
         return jsonify({"error": "File not found."}), 404
     return send_file(wav_path, mimetype='audio/wav', as_attachment=True, download_name='musicgen_output.wav')
+
+
+@app.route('/api/vulnerability-scan', methods=['POST'])
+def vulnerability_scan():
+    """Scan code for security vulnerabilities via OpenAI."""
+    data = request.json or {}
+    code = data.get('code')
+    if not code:
+        return jsonify({'error': 'Missing code'}), 400
+    openai_api_key = os.environ.get('OPENAI_API_KEY')
+    if not openai_api_key:
+        return jsonify({'error': 'OPENAI_API_KEY environment variable not set'}), 500
+    try:
+        openai.api_key = openai_api_key
+        resp = openai.ChatCompletion.create(
+            model=data.get('model', 'gpt-3.5-turbo'),
+            messages=[{'role': 'user', 'content': f"Scan the following code for security vulnerabilities and list the issues:\n```{code}```"}],
+            max_tokens=data.get('max_tokens', 500)
+        )
+        content = resp.choices[0].message.content
+        return jsonify({'issues': content})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
