@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
 import './ChatBot.css'
 
-const ChatBot = () => {
-  const [open, setOpen] = useState(false)
+const ChatBot = ({ startOpen = false, showToggle = true }) => {
+  const [open, setOpen] = useState(startOpen);
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState([
     { sender: 'bot', text: 'Hi! I\'m your CodedSwitch assistant. How can I help?' }
@@ -71,9 +71,11 @@ const ChatBot = () => {
   }
   return (
     <>
-      <button className="chatbot-toggle" onClick={toggle} aria-label="Open chat bot">
+      {showToggle && (
+        <button className="chatbot-toggle" onClick={toggle} aria-label="Open chat bot">
         💬
       </button>
+      )}
       {open && (
         <div className="chatbot-container">
           <div className="chatbot-header">

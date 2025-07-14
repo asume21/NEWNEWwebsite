@@ -110,6 +110,20 @@ const MusicStudio = () => {
     if (!playersRef.current) {
       playersRef.current = new Tone.Players(SAMPLE_URLS).toDestination()
       await playersRef.current.load()
+
+      // Load and schedule loop clips
+      for (const clip of loopClips) {
+        if (!loopPlayersRef.current[clip.id]) {
+          const player = new Tone.Player(`/samples/${clip.filename}`).toDestination()
+          await player.load()
+          player.loop = true
+          player.loopStart = 0
+          player.loopEnd = clip.length / PIXELS_PER_SECOND
+          loopPlayersRef.current[clip.id] = player
+        }
+        // Schedule loop playback
+        scheduleClipSample(loopPlayersRef.current[clip.id], clip)
+      }
     }
 
     tracks.forEach((track, idx) => {
