@@ -3,9 +3,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
 from musicgen_backend import generate_instrumental
-import openai
-import anthropic
-import google.generativeai as genai
+
 
 app = Flask(__name__)
 CORS(app, origins=[
