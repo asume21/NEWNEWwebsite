@@ -6,6 +6,4 @@ torch
 audiocraft
 soundfile
 sounddevice
-openai
-anthropic
-google-generative-ai
+
