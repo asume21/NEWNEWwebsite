@@ -4,7 +4,6 @@ backend/venv/
 
 # Ignore deploy and minimal code directories
 codedswitch-deploy/
-codedswitch-minimal/
 
 # Ignore patch files
 changes.patch
